@@ -1,5 +1,6 @@
 #[cfg(feature = "cose")]
 pub use cosey::Ed25519PublicKey as CosePublicKey;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 use crate::{
     Error,
@@ -23,6 +24,7 @@ use crate::{
 
 /// a secret key, consisting internally of the seed and
 /// its expansion into a scalar and a "nonce".
+#[derive(Zeroize, ZeroizeOnDrop)]
 pub struct SecretKey {
     #[allow(dead_code)]
     pub (crate) seed: [u8; SECRETKEY_SEED_LENGTH],
@@ -437,8 +439,8 @@ impl Signature {
 #[cfg(test)]
 mod tests {
     use hex_literal::hex;
-    use super::Keypair;
-    use crate::hash::Sha512;
+    use super::*;
+    use crate::{constants::SCALAR_LENGTH, hash::Sha512};
 
     #[test]
     fn test_decompression() {
@@ -663,6 +665,23 @@ mod tests {
         assert_eq!(secret1.x(), secret2.x());
         assert_eq!(secret1.y(), secret2.y());
 
+    }
+
+    #[test]
+    fn zeroize_on_drop() {
+        let mut secret = SecretKey::from(&[1u8; SECRETKEY_SEED_LENGTH]);
+
+        assert_ne!(secret.seed, [0u8; SECRETKEY_SEED_LENGTH]);
+        assert_ne!(secret.scalar.0, [0u8; SCALAR_LENGTH]);
+        assert_ne!(secret.nonce, [0u8; SECRETKEY_NONCE_LENGTH]);
+
+        unsafe {
+            std::ptr::drop_in_place(&mut secret);
+        }
+
+        assert_eq!(secret.seed, [0u8; SECRETKEY_SEED_LENGTH]);
+        assert_eq!(secret.scalar.0, [0u8; SCALAR_LENGTH]);
+        assert_eq!(secret.nonce, [0u8; SECRETKEY_NONCE_LENGTH]);
     }
 }
 

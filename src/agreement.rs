@@ -246,4 +246,14 @@ mod tests {
         // }
     }
 
+    #[test]
+    fn zeroize_on_drop() {
+        let mut secret = SecretKey::from_seed(&[1u8; 32]);
+
+        unsafe {
+            std::ptr::drop_in_place(&mut secret);
+        }
+
+        assert_eq!(secret.0.as_bytes(), &[0u8; 32]);
+    }
 }
