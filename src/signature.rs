@@ -43,8 +43,10 @@ pub struct PublicKey {
 }
 
 /// pair of secret and corresponding public keys
+#[derive(Zeroize, ZeroizeOnDrop)]
 pub struct Keypair {
     pub secret: SecretKey,
+    #[zeroize(skip)]
     pub public: PublicKey,
 }
 
