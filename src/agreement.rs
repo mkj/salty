@@ -1,5 +1,6 @@
 //! 99.9% cribbed from x25519-dalek
 use core::convert::TryFrom;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 use crate::{
     constants::SECRETKEY_SEED_LENGTH,
@@ -19,16 +20,13 @@ pub struct PublicKey(pub(crate) MontgomeryPoint);
 ///
 /// This is a wrapper around a `Scalar`. To obtain the corresponding `PublicKey`,
 /// use `PublicKey::from(&secret_key)`.
-// #[derive(Zeroize)]
-// #[zeroize(drop)]
-#[derive(Clone/*, Zeroize*/)]
+#[derive(Clone, Zeroize, ZeroizeOnDrop)]
 pub struct SecretKey(pub(crate) Scalar);
 
 /// The result of a Diffie-Hellman key exchange.
 ///
 /// Each party computes this using their [`SecretKey`] and their counterparty's [`PublicKey`].
-// #[derive(Zeroize)]
-// #[zeroize(drop)]
+#[derive(Clone, Zeroize, ZeroizeOnDrop)]
 pub struct SharedSecret(pub(crate) MontgomeryPoint);
 
 impl TryFrom<[u8; 32]> for PublicKey {
@@ -247,7 +245,7 @@ mod tests {
     }
 
     #[test]
-    fn zeroize_on_drop() {
+    fn zeroize_key_on_drop() {
         let mut secret = SecretKey::from_seed(&[1u8; 32]);
 
         unsafe {
@@ -255,5 +253,20 @@ mod tests {
         }
 
         assert_eq!(secret.0.as_bytes(), &[0u8; 32]);
+    }
+
+    #[test]
+    fn zeroize_secret_on_drop() {
+        let mut ours = SecretKey::from_seed(&[1u8; 32]);
+        let mut theirs = SecretKey::from_seed(&[1u8; 32]);
+        let mut secret = ours.agree(&(&theirs).into());
+
+        assert_ne!(secret.0.to_bytes(), [0u8; 32]);
+
+        unsafe {
+            std::ptr::drop_in_place(&mut secret);
+        }
+
+        assert_eq!(secret.0.to_bytes(), [0u8; 32]);
     }
 }

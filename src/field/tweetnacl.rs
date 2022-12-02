@@ -13,13 +13,14 @@ use subtle::{
     ConditionallySelectable,
     ConstantTimeEq,
 };
+use zeroize::Zeroize;
 
 use super::FieldImplementation;
 
 pub type Limbs = [i64; 16];
 
 /// Element of the base field of the elliptic curve
-#[derive(Clone,Copy,Debug,Default)]
+#[derive(Clone,Copy,Debug,Default,Zeroize)]
 pub struct FieldElement(pub Limbs);
 
 impl ConditionallySelectable for FieldElement {

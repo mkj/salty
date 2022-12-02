@@ -13,7 +13,7 @@ use core::{
 use subtle::Choice;
 use subtle::ConditionallySelectable;
 use subtle::ConstantTimeEq;
-// use zeroize::Zeroize;
+use zeroize::Zeroize;
 
 use crate::{
     Error,
@@ -30,7 +30,7 @@ use crate::{
 // #[derive(Clone,Copy,Debug,Default)]
 /// Holds the \\(u\\)-coordinate of a point on the Montgomery form of
 /// Curve25519 or its twist.
-#[derive(Clone,Copy,Debug,Default/*,Hash*/)]
+#[derive(Clone,Copy,Debug,Default,Zeroize/*,Hash*/)]
 pub struct MontgomeryPoint(pub FieldElement);
 
 impl ConstantTimeEq for MontgomeryPoint {
@@ -57,12 +57,6 @@ impl PartialEq for MontgomeryPoint {
 }
 
 impl Eq for MontgomeryPoint {}
-
-// impl Zeroize for MontgomeryPoint {
-//     fn zeroize(&mut self) {
-//         self.0.zeroize();
-//     }
-// }
 
 impl MontgomeryPoint {
     // /// View this `MontgomeryPoint` as an array of bytes.

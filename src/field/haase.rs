@@ -13,6 +13,7 @@ use subtle::{
     ConditionallySelectable,
     ConstantTimeEq,
 };
+use zeroize::Zeroize;
 
 use super::FieldImplementation;
 
@@ -28,7 +29,7 @@ extern "C" {
     pub fn fe25519_square_asm(result: *mut U256, value: *const U256);
 }
 
-#[derive(Clone,Copy,Debug,Default)]
+#[derive(Clone,Copy,Debug,Default,Zeroize)]
 pub struct FieldElement(pub Limbs);
 
 impl ConditionallySelectable for FieldElement {
